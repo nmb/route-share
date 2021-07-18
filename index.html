@@ -36,10 +36,9 @@ h1, h2, h3 {
     <input type="file"
            id="gpxfile" name="gpxfile"
                         accept=".gpx,.GPX" onchange="loadTrack(this)">
-    <p>
+    <p id="shortlink">
     <button id="tinyURLButton" onclick="createTinyURL()" style="visibility:hidden">Create short link</button>
     </p>
-    <p id="shortlink"></p>
     <script src="js/GPXParser.min.js"></script>
     <!-- Make sure you put this AFTER Leaflet's CSS -->
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
@@ -85,7 +84,14 @@ async function createTinyURL(){
   let res = await fetch('https://tinyurl.com/api-create.php?url=' + url)
   const tinyURL = await res.text()
   console.log("tinyurl: " + tinyURL)
-  document.getElementById("tinyURLButton").style.visibility = "visible";
+  document.getElementById("tinyURLButton").style.visibility = "hidden";
+  // add link to document
+  let a = document.createElement('a');
+  let linkText = document.createTextNode(tinyURL);
+  a.appendChild(linkText);
+  a.href = tinyURL
+  a.id = 'tinyurl'
+  document.getElementById("shortlink").appendChild(a)
   return(tinyURL)
 }
 function drawTrack(points) {
@@ -113,6 +119,11 @@ function loadTrack(input) {
     console.log(coordinates.length)
     console.log(s_coordinates.length)
     console.log(lzw_encode(JSON.stringify(s_coordinates)))
+    // remove old short link (if any)
+    let sl = document.getElementById('tinyurl')
+    if(sl) {
+      sl.parentNode.removeChild(sl)
+    }
     document.getElementById("tinyURLButton").style.visibility = "visible";
     mymap.routeData = lzw_encode(JSON.stringify(s_coordinates))
     drawTrack(s_coordinates)
