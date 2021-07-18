@@ -26,16 +26,20 @@ h1, h2, h3 {
   </head>
   <body>
 
+    <div id="map"></div>
+
     <p>Total distance: <span id="totalDistance"></span> km</p>
 
-    <div id="map"></div>
 
 
     <label for="gpxfile">Select GPX file:</label>
     <input type="file"
            id="gpxfile" name="gpxfile"
                         accept=".gpx,.GPX" onchange="loadTrack(this)">
-
+    <p>
+    <button id="tinyURLButton" onclick="createTinyURL()" style="visibility:hidden">Create short link</button>
+    </p>
+    <p id="shortlink"></p>
     <script src="js/GPXParser.min.js"></script>
     <!-- Make sure you put this AFTER Leaflet's CSS -->
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
@@ -75,6 +79,15 @@ document.addEventListener('DOMContentLoaded', function() {
     drawTrack(trackData)
   }
 })
+async function createTinyURL(){
+  console.log("Creating tinyurl.")
+  let url = window.location.href.split('?')[0] + "?t=" + encodeURIComponent(mymap.routeData)
+  let res = await fetch('https://tinyurl.com/api-create.php?url=' + url)
+  const tinyURL = await res.text()
+  console.log("tinyurl: " + tinyURL)
+  document.getElementById("tinyURLButton").style.visibility = "visible";
+  return(tinyURL)
+}
 function drawTrack(points) {
   if(mymap.myroute){
   mymap.removeLayer(mymap.myroute)
@@ -96,10 +109,12 @@ function loadTrack(input) {
 
     const track = gpx.tracks[0]
     let coordinates = track.points.map(p => [p.lat.toFixed(5), p.lon.toFixed(5)]);
-    let s_coordinates = GDouglasPeucker(track.points, 50).map(p => [p.lat.toFixed(5), p.lon.toFixed(5)])
+    let s_coordinates = GDouglasPeucker(track.points, 10).map(p => [p.lat.toFixed(5), p.lon.toFixed(5)])
     console.log(coordinates.length)
     console.log(s_coordinates.length)
     console.log(lzw_encode(JSON.stringify(s_coordinates)))
+    document.getElementById("tinyURLButton").style.visibility = "visible";
+    mymap.routeData = lzw_encode(JSON.stringify(s_coordinates))
     drawTrack(s_coordinates)
   }
 
