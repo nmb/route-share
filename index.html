@@ -60,7 +60,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(mymap);
 mymap.addControl(new L.Control.Fullscreen());
 
-document.addEventListener('DOMContentLoaded', function() {
+function setStateFromURL(){
   params = new URLSearchParams(window.location.search);
   if(params.has("t")) {
     let trackData = JSON.parse(lzw_decode(params.get("t"))) 
@@ -77,6 +77,9 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById("totalDistance").innerText = (distance.total/1000).toFixed(3);
     drawTrack(trackData)
   }
+}
+document.addEventListener('DOMContentLoaded', function() {
+  setStateFromURL()
 })
 async function createTinyURL(){
   console.log("Creating tinyurl.")
@@ -126,10 +129,14 @@ function loadTrack(input) {
     }
     document.getElementById("tinyURLButton").style.visibility = "visible";
     mymap.routeData = lzw_encode(JSON.stringify(s_coordinates))
+    window.history.pushState('', '', "?t=" + encodeURIComponent(mymap.routeData))
     drawTrack(s_coordinates)
   }
 
 }
+window.onpopstate = function(e){
+  setStateFromURL()
+};
     </script>
 
   </body>
