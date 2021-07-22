@@ -116,9 +116,20 @@ function loadTrack(input) {
 
     const track = gpx.tracks[0]
     let coordinates = track.points.map(p => [p.lat.toFixed(5), p.lon.toFixed(5)]);
-    let s_coordinates = GDouglasPeucker(track.points, 10).map(p => [p.lat.toFixed(5), p.lon.toFixed(5)])
-    console.log(coordinates.length)
-    console.log(s_coordinates.length)
+    let tolerance = 4
+    let s_coordinates = []
+    let dataString = ""
+    console.log("No of points: " + coordinates.length)
+    // calculate simplified route with increasing tolerance 
+    // until URL is short enough
+    do {
+      s_coordinates = GDouglasPeucker(track.points, tolerance).map(p => [p.lat.toFixed(5), p.lon.toFixed(5)]) 
+      dataStr = lzw_encode(JSON.stringify(s_coordinates))
+      console.log(tolerance, s_coordinates.length, dataStr.length)
+      tolerance *= 2
+    }
+    while(encodeURIComponent(dataStr).length > 8000 && tolerance < 4096);
+
     console.log(lzw_encode(JSON.stringify(s_coordinates)))
     // remove old short link (if any)
     let sl = document.getElementById('tinyurl')
