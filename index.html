@@ -61,17 +61,15 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 mymap.addControl(new L.Control.Fullscreen());
 
 function setStateFromURL(){
-  params = new URLSearchParams(window.location.search);
-  if(params.has("t")) {
-    let trackData = JSON.parse(lzw_decode(params.get("t"))) 
-    console.log(trackData)
+  if(window.location.hash) {
+    const jsonStr = lzw_decode(decodeURIComponent(window.location.hash.substring(1)))
+    let trackData = JSON.parse(jsonStr) 
     const points = trackData.map(p => {
       let np = {}
       np["lat"] = parseFloat(p[0])
       np["lon"] = parseFloat(p[1])
       return np
     })
-    console.log(points[0])
     let gpx = new gpxParser();
     let distance = gpx.calculDistance(points)
     document.getElementById("totalDistance").innerText = (distance.total/1000).toFixed(3);
@@ -83,10 +81,9 @@ document.addEventListener('DOMContentLoaded', function() {
 })
 async function createTinyURL(){
   console.log("Creating tinyurl.")
-  let url = window.location.href.split('?')[0] + "?t=" + encodeURIComponent(mymap.routeData)
+  let url = encodeURIComponent(window.location.href.split('#')[0] + "#" + mymap.routeData)
   let res = await fetch('https://tinyurl.com/api-create.php?url=' + url)
   const tinyURL = await res.text()
-  console.log("tinyurl: " + tinyURL)
   document.getElementById("tinyURLButton").style.display = "none";
   // add link to document
   let a = document.createElement('a');
@@ -129,7 +126,7 @@ function loadTrack(input) {
     }
     document.getElementById("tinyURLButton").style.display = "";
     mymap.routeData = lzw_encode(JSON.stringify(s_coordinates))
-    window.history.pushState('', '', "?t=" + encodeURIComponent(mymap.routeData))
+    window.history.pushState('', '', "#" + encodeURIComponent(mymap.routeData))
     drawTrack(s_coordinates)
   }
 
