@@ -26,7 +26,7 @@ h1, h2, h3 {
   </head>
   <body>
 
-    <div id="map"></div>
+    <div id="map" style="display:none"></div>
 
     <p>Total distance: <span id="totalDistance"></span> km</p>
 
@@ -98,6 +98,7 @@ function drawTrack(points) {
   if(mymap.myroute){
   mymap.removeLayer(mymap.myroute)
   }
+  document.getElementById("map").style.display = "";
   mymap.myroute = L.polyline(points, { weight: 6, color: 'darkred' })
   mymap.myroute.addTo(mymap);
   // zoom the map to the polyline
