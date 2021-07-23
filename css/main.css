@@ -1,13 +1,49 @@
-h1, h2, h3 {
-  font-family: sans-serif;
+html {
+  height: 100%;
+}
+body {
+  padding-top: 0.0rem;
+  padding-bottom: 10px;
+  font-size: 1.1rem;
+  color: #444;
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
 }
 
-        p {
-          font-family: sans-serif;
-        }
+.flex-grid {
+  display: flex;
+  flex-wrap: wrap;
+}
+.col {
+  flex: 1;
+  min-width: 256px;
+}
 
-        #map {
-          height: 500px;
-          width: 100%;
-        }
+@media only screen and (max-width: 768px) {
+  body {
+    font-size: 1.0rem;
+  }
+  .col {
+    width: 100%;
+  };
+}
+
+label {
+  float: left;
+  width: 10em;
+  margin-right: 0.5em;
+}
+
+footer {
+  flex-shrink: 0;
+  padding-top: 20px;
+  text-align: center;
+  margin-top: auto;
+}
+
+#map {
+  height: 500px;
+  width: 100%;
+}
 
