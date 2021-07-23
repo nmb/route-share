@@ -14,8 +14,16 @@ var routeShare = {
 
   setStateFromURL: function() {
     if(window.location.hash) {
-      const jsonStr = lzw_decode(decodeURIComponent(window.location.hash.substring(1)))
-      let trackData = JSON.parse(jsonStr) 
+      let trackData
+      try {
+        const jsonStr = lzw_decode(decodeURIComponent(window.location.hash.substring(1)))
+        trackData = JSON.parse(jsonStr) 
+      }
+      catch(e) {
+        console.log("Malformed data.")
+        return
+      }
+
       const points = trackData.map(p => {
         let np = {}
         np["lat"] = parseFloat(p[0])
@@ -62,7 +70,13 @@ var routeShare = {
     reader.readAsText(file)
     reader.onload = function() {
       let gpx = new gpxParser();
-      gpx.parse(reader.result);
+      try {
+        gpx.parse(reader.result);
+      }
+      catch(e) {
+        alert("Malformed URL.")
+        return
+      }
       document.getElementById("totalDistance").innerText = (gpx.tracks[0].distance.total / 1000).toFixed(3);
 
       const track = gpx.tracks[0]
