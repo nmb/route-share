@@ -11,6 +11,7 @@ const routeShare = {
       maxZoom: 50
     }).addTo(this.mymap);
     this.mymap.addControl(new L.Control.Fullscreen());
+    L.control.locate().addTo(this.mymap);
   },
 
   setStateFromURL: function() {
