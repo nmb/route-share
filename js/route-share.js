@@ -50,7 +50,7 @@ const routeShare = {
     a.appendChild(linkText);
     a.href = tinyURL
     a.id = 'tinyurl'
-    document.getElementById("shortlink").appendChild(a)
+    document.getElementById("shortlink").prepend(a)
     return(tinyURL)
   },
   drawTrack: function () {
