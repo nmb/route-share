@@ -26,7 +26,8 @@
                  id="gpxfile" name="gpxfile"
                               accept=".gpx,.GPX" onchange="routeShare.loadTrack(this)">
           <p id="shortlink">
-          <button id="tinyURLButton" onclick="routeShare.createTinyURL()" style="display:none">Create short link</button>
+          <button id="tinyURLButton" class="blue" onclick="routeShare.createTinyURL()" style="display:none">Create short link</button>
+          <button id="downloadButton" class="blue" onclick="routeShare.downloadGpxFile()" style="display:none" >Download GPX</button>
           </p>
         </div>
       </div>

@@ -1,7 +1,8 @@
-var routeShare = {
+const routeShare = {
   mymap: null,
   myroute: null,
   routeData: null,
+  points: null,
 
   initialize: function(){
     this.mymap = L.map('map');
@@ -24,22 +25,21 @@ var routeShare = {
         return
       }
 
-      const points = trackData.map(p => {
+      this.points = trackData.map(p => {
         let np = {}
         np["lat"] = parseFloat(p[0])
         np["lon"] = parseFloat(p[1])
         return np
       })
       let gpx = new gpxParser();
-      let distance = gpx.calculDistance(points)
+      let distance = gpx.calculDistance(this.points)
       document.getElementById("totalDistance").innerText = (distance.total/1000).toFixed(3);
-      this.drawTrack(trackData)
+      this.drawTrack()
     }
   },
 
   createTinyURL: async function (){
     console.log("Creating tinyurl.")
-    //let url = encodeURIComponent(window.location.href.split('#')[0] + "#" + window.routeShare.routeData)
     let url = encodeURIComponent(window.location.href)
     let res = await fetch('https://tinyurl.com/api-create.php?url=' + url)
     const tinyURL = await res.text()
@@ -53,12 +53,13 @@ var routeShare = {
     document.getElementById("shortlink").appendChild(a)
     return(tinyURL)
   },
-  drawTrack: function (points) {
+  drawTrack: function () {
     if(this.myroute){
       this.mymap.removeLayer(this.myroute)
     }
     document.getElementById("map").style.display = "";
-    this.myroute = L.polyline(points, { weight: 6, color: 'darkred' })
+    document.getElementById("downloadButton").style.display = "";
+    this.myroute = L.polyline(this.points, { weight: 6, color: 'darkred' })
     this.myroute.addTo(this.mymap);
     // zoom the map to the polyline
     this.mymap.fitBounds(this.myroute.getBounds());
@@ -68,7 +69,7 @@ var routeShare = {
     let file = input.files[0];
     let reader = new FileReader();
     reader.readAsText(file)
-    reader.onload = function() {
+    reader.onload = () => {
       let gpx = new gpxParser();
       try {
         gpx.parse(reader.result);
@@ -82,30 +83,54 @@ var routeShare = {
       const track = gpx.tracks[0]
       let coordinates = track.points.map(p => [p.lat.toFixed(5), p.lon.toFixed(5)]);
       let tolerance = 4
-      let s_coordinates = []
       let dataString = ""
       console.log("No of points: " + coordinates.length)
       // calculate simplified route with increasing tolerance 
       // until URL is short enough
       do {
-        s_coordinates = GDouglasPeucker(track.points, tolerance).map(p => [p.lat.toFixed(5), p.lon.toFixed(5)]) 
-        dataStr = lzw_encode(JSON.stringify(s_coordinates))
-        console.log(tolerance, s_coordinates.length, dataStr.length)
+        this.points = GDouglasPeucker(track.points, tolerance).map(p => [p.lat.toFixed(5), p.lon.toFixed(5)]) 
+        dataStr = lzw_encode(JSON.stringify(this.points))
+        console.log(tolerance, this.points.length, dataStr.length)
         tolerance *= 2
       }
       while(encodeURIComponent(dataStr).length > 8000 && tolerance < 4096);
 
-      console.log(lzw_encode(JSON.stringify(s_coordinates)))
+      console.log(lzw_encode(JSON.stringify(this.points)))
       // remove old short link (if any)
       let sl = document.getElementById('tinyurl')
       if(sl) {
         sl.parentNode.removeChild(sl)
       }
       document.getElementById("tinyURLButton").style.display = "";
-      let routeData = lzw_encode(JSON.stringify(s_coordinates))
+      let routeData = lzw_encode(JSON.stringify(this.points))
       window.history.pushState('', '', "#" + encodeURIComponent(routeData))
-      window.routeShare.drawTrack(s_coordinates)
+      this.drawTrack(this.points)
     }
 
+  },
+  createXmlString: function() {
+    let result = '<gpx xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd" version="1.1" creator="runtracker"><metadata/><trk><name></name><desc></desc>'
+    result += this.points.reduce((accum, curr) => {
+      console.log(curr)
+      let segmentTag = '<trkseg>';
+      segmentTag += `<trkpt lat="${curr[0]}" lon="${curr[1]}"></trkpt>`
+      segmentTag += '</trkseg>'
+
+      return accum += segmentTag;
+    }, '');
+    result += '</trk></gpx>';
+    return result;
+  },
+
+  downloadGpxFile: function() {
+    const xml = this.createXmlString();
+    const url = 'data:text/json;charset=utf-8,' + xml;
+    const link = document.createElement('a');
+    link.download = 'route-share.gpx';
+    link.href = url;
+    document.body.appendChild(link);
+    link.click();
   }
+
 }
+
