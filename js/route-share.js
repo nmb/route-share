@@ -108,6 +108,7 @@ const routeShare = {
     }
 
   },
+  // from https://stackoverflow.com/a/61738144
   createXmlString: function() {
     let result = '<gpx xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd" version="1.1" creator="runtracker"><metadata/><trk><name></name><desc></desc>'
     result += this.points.reduce((accum, curr) => {
