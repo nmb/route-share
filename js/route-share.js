@@ -91,12 +91,11 @@ const routeShare = {
       do {
         this.points = GDouglasPeucker(track.points, tolerance).map(p => [p.lat.toFixed(5), p.lon.toFixed(5)]) 
         dataStr = lzw_encode(JSON.stringify(this.points))
-        console.log(tolerance, this.points.length, dataStr.length)
+        console.log("tolerance, no of points, str length: ", tolerance, this.points.length, dataStr.length)
         tolerance *= 2
       }
       while(encodeURIComponent(dataStr).length > 8000 && tolerance < 4096);
 
-      console.log(lzw_encode(JSON.stringify(this.points)))
       // remove old short link (if any)
       let sl = document.getElementById('tinyurl')
       if(sl) {
@@ -113,7 +112,6 @@ const routeShare = {
   createXmlString: function() {
     let result = '<gpx xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd" version="1.1" creator="runtracker"><metadata/><trk><name></name><desc></desc>'
     result += this.points.reduce((accum, curr) => {
-      console.log(curr)
       let segmentTag = '<trkseg>';
       segmentTag += `<trkpt lat="${curr[0]}" lon="${curr[1]}"></trkpt>`
       segmentTag += '</trkseg>'
