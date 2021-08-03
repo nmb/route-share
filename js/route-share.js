@@ -36,6 +36,19 @@ const routeShare = {
       let distance = gpx.calculDistance(this.points)
       document.getElementById("totalDistance").innerText = (distance.total/1000).toFixed(3);
       this.drawTrack()
+      document.getElementById("downloadButton").style.display = ""
+      document.getElementById("tinyURLButton").style.display = ""
+      document.getElementById("distanceDiv").style.display = ""
+      let sl = document.getElementById("tinyurl")
+      if(sl) {
+        sl.parentNode.removeChild(sl)
+      }
+    }
+    else {
+      document.getElementById("map").style.display = "none";
+      document.getElementById("downloadButton").style.display = "none"
+      document.getElementById("tinyURLButton").style.display = "none"
+      document.getElementById("distanceDiv").style.display = "none"
     }
   },
 
