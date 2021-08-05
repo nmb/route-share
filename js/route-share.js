@@ -85,6 +85,7 @@ const routeShare = {
         return
       }
       document.getElementById("totalDistance").innerText = (gpx.tracks[0].distance.total / 1000).toFixed(3);
+      document.getElementById("distanceDiv").style.display = ""
 
       const track = gpx.tracks[0]
       let coordinates = track.points.map(p => [p.lat, p.lon]);
