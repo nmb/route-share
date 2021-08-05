@@ -12,6 +12,8 @@ until the data is small enough to fit into an URL that can be shared
 
 The route is drawn on top of an [OpenStreetMap](https://www.openstreetmap.org) layer.
 
+Example: [the 2016 Paris-Roubaix route](https://tinyurl.com/yhcz5gn7)
+
 ## Credits
 * [Draw GPS Track on OpenStreetMap](https://blog.aaronlenoir.com/2019/09/25/draw-gps-track-on-openstreetmap/)
 * [GPX parser](https://github.com/Luuka/gpx-parser)
