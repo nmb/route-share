@@ -16,24 +16,16 @@ const routeShare = {
 
   setStateFromURL: function() {
     if(window.location.hash) {
-      let trackData
       try {
-        const jsonStr = lzw_decode(decodeURIComponent(window.location.hash.substring(1)))
-        trackData = JSON.parse(jsonStr) 
+        this.points = this.str2Points(window.location.hash.substring(1))
       }
       catch(e) {
         console.log("Malformed data.")
         return
       }
 
-      this.points = trackData.map(p => {
-        let np = {}
-        np["lat"] = parseFloat(p[0])
-        np["lon"] = parseFloat(p[1])
-        return np
-      })
       let gpx = new gpxParser();
-      let distance = gpx.calculDistance(this.points)
+      let distance = gpx.calculDistance(routeShare.points.map( p => Object.fromEntries([["lat",p[0]],["lon",p[1]]])))
       document.getElementById("totalDistance").innerText = (distance.total/1000).toFixed(3);
       this.drawTrack()
       document.getElementById("downloadButton").style.display = ""
@@ -95,19 +87,19 @@ const routeShare = {
       document.getElementById("totalDistance").innerText = (gpx.tracks[0].distance.total / 1000).toFixed(3);
 
       const track = gpx.tracks[0]
-      let coordinates = track.points.map(p => [p.lat.toFixed(5), p.lon.toFixed(5)]);
+      let coordinates = track.points.map(p => [p.lat, p.lon]);
       let tolerance = 4
       let dataString = ""
       console.log("No of points: " + coordinates.length)
       // calculate simplified route with increasing tolerance 
       // until URL is short enough
       do {
-        this.points = GDouglasPeucker(track.points, tolerance).map(p => [p.lat.toFixed(5), p.lon.toFixed(5)]) 
-        dataStr = lzw_encode(JSON.stringify(this.points))
+        this.points = GDouglasPeucker(track.points, tolerance).map(p => [p.lat, p.lon])
+        dataStr = this.points2Str(this.points)
         console.log("tolerance, no of points, str length: ", tolerance, this.points.length, dataStr.length)
         tolerance *= 2
       }
-      while(encodeURIComponent(dataStr).length > 8000 && tolerance < 4096);
+      while(dataStr.length > 8000 && tolerance < 4096);
 
       // remove old short link (if any)
       let sl = document.getElementById('tinyurl')
@@ -115,8 +107,7 @@ const routeShare = {
         sl.parentNode.removeChild(sl)
       }
       document.getElementById("tinyURLButton").style.display = "";
-      let routeData = lzw_encode(JSON.stringify(this.points))
-      window.history.pushState('', '', "#" + encodeURIComponent(routeData))
+      window.history.pushState('', '', "#" + dataStr)
       this.drawTrack(this.points)
     }
 
@@ -126,7 +117,7 @@ const routeShare = {
     let result = '<gpx xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd" version="1.1" creator="runtracker"><metadata/><trk><name></name><desc></desc>'
     result += this.points.reduce((accum, curr) => {
       let segmentTag = '<trkseg>';
-      segmentTag += `<trkpt lat="${curr[0]}" lon="${curr[1]}"></trkpt>`
+      segmentTag += `<trkpt lat="${curr[0].toFixed(5)}" lon="${curr[1].toFixed(5)}"></trkpt>`
       segmentTag += '</trkseg>'
 
       return accum += segmentTag;
@@ -143,7 +134,37 @@ const routeShare = {
     link.href = url;
     document.body.appendChild(link);
     link.click();
-  }
+  },
 
+  points2Delta: function(p, reverse = false) {
+    let res = []
+    res.push([p[0][0], p[0][1]])
+    for(let i = 1; i < p.length; i++) {
+      if(reverse) {
+        res.push([p[i][0]+res[i-1][0], p[i][1]+res[i-1][1]])
+      }
+      else {
+        res.push([p[i][0]-p[i-1][0], p[i][1]-p[i-1][1]])
+      }
+    }
+    return(res)
+  },
+  points2Str: function(){
+    let diffArr = this.points2Delta(this.points)
+    let scale = Math.max(...diffArr.flat().slice(2).map( x => Math.abs(x)))
+    return([scale.toFixed(5), diffArr.slice(0,1).flat(), diffArr.flat().slice(2).map( 
+      x => parseFloat((x/scale).toFixed(5)))].flat().toString().replaceAll(",","!"))
+
+  },
+  str2Points: function(str){
+    let res = []
+    let tmpArr = str.split("!").map( x => parseFloat(x))
+    let scale = parseFloat(tmpArr.shift())
+    res.push(tmpArr.slice(0,2))
+    for(let i = 2; i < tmpArr.length-1; i += 2) {
+      res.push([tmpArr[i] * scale,tmpArr[i+1] * scale])
+    }
+    return(this.points2Delta(res, true))
+  }
 }
 

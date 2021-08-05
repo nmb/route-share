@@ -18,6 +18,5 @@ The route is drawn on top of an [OpenStreetMap](https://www.openstreetmap.org) l
 * [Ramer-Douglas-Peucker implementation](http://www.bdcc.co.uk/Gmaps/Services.htm)
 * [Leaflet](https://leafletjs.com/)
 * [Leaflet fullscreen button](https://github.com/Leaflet/Leaflet.fullscreen)
-* [LZW compression](https://gist.github.com/revolunet/843889)
 * [tinyURL](https://tinyurl.com) for generating shortened links.
 
